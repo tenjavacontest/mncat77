@@ -2,9 +2,9 @@ package me.mncat77.fictionworld.generator.biome.layer;
 
 import me.mncat77.fictionworld.generator.biome.BiomeBase;
 
-public class BiomeLayerSwampRivers extends BiomeLayer {
+public class BiomeLayerLakes extends BiomeLayer {
 
-    public BiomeLayerSwampRivers(long seed, BiomeLayer parent) {
+    public BiomeLayerLakes(long seed, BiomeLayer parent) {
         super(seed);
         this.parent = parent;
     }

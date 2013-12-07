@@ -25,7 +25,7 @@ public class FictionWorldAttributes {
     private final double distanceGridAddition;
     
     //Structure and Creature attributes
-    private final FictionWorldHostility hostility;
+    private FictionWorldHostility hostility;
     
     
     public FictionWorldAttributes(List<String> describingWords) {
@@ -69,7 +69,15 @@ public class FictionWorldAttributes {
         this.noiseAmplitude = altitudeDiffrence;
         this.noiseFrequency = altitudeDiffrence;
         this.distanceGridAddition = altitudeDiffrence / 3.0D;
-        this.hostility = FictionWorldHostility.values()[rand.nextInt(4)];
+        
+        for (String s : describingWords) {
+            if (s.contains("apocalyp")) {
+                this.hostility = FictionWorldHostility.APOCALYPSE;
+            }
+        }
+        if(this.hostility != FictionWorldHostility.APOCALYPSE) {
+           this.hostility = FictionWorldHostility.values()[rand.nextInt(4)]; 
+        }
     }
     
     private FictionWorldAttributes(double averageRainfall, double averageTemperature, int waterLevel, double noiseAmplitude, double noiseFrequency, double distanceGridAddition, FictionWorldHostility hostility) {
@@ -83,9 +91,11 @@ public class FictionWorldAttributes {
     }
     
     private static boolean containsAny(List<String> list, String[] words) {
-        for (String word : words) {
-            if (list.contains(word)) {
-                return true;
+        for (String s : list) {
+            for (String word : words) {
+                if (s.contains(word)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -97,20 +107,14 @@ public class FictionWorldAttributes {
     }
     
     public static FictionWorldAttributes fromString(String s) {
-        String[] temp = s.split(";");
-        double averageRainfall = Double.parseDouble(temp[0]);
-        temp = temp[1].split(";");
-        double averageTemperature = Double.parseDouble(temp[0]);
-        temp = temp[1].split(";");
-        int waterLevel = Integer.parseInt(temp[0]);
-        temp = temp[1].split(";");
-        double noiseAmplitude = Double.parseDouble(temp[0]);
-        temp = temp[1].split(";");
-        double noiseFrequency = Double.parseDouble(temp[0]);
-        temp = temp[1].split(";");
-        double distanceGridAddition = Double.parseDouble(temp[0]);
-        temp = temp[1].split(";");
-        FictionWorldHostility hostility = FictionWorldHostility.values()[Integer.parseInt(temp[0])];
+        String[] split = s.split(";");
+        double averageRainfall = Double.parseDouble(split[0]);
+        double averageTemperature = Double.parseDouble(split[1]);
+        int waterLevel = Integer.parseInt(split[2]);
+        double noiseAmplitude = Double.parseDouble(split[3]);
+        double noiseFrequency = Double.parseDouble(split[4]);
+        double distanceGridAddition = Double.parseDouble(split[5]);
+        FictionWorldHostility hostility = FictionWorldHostility.values()[Integer.parseInt(split[6])];
         
         return new FictionWorldAttributes(averageRainfall, averageTemperature, waterLevel, noiseAmplitude, noiseFrequency, distanceGridAddition, hostility);
     }

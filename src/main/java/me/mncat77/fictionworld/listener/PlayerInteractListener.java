@@ -1,6 +1,5 @@
 package me.mncat77.fictionworld.listener;
 
-import java.io.File;
 import java.util.List;
 import java.util.Random;
 import me.mncat77.fictionworld.FictionWorld;
@@ -9,13 +8,11 @@ import me.mncat77.fictionworld.world.FictionWorldAttributes;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.meta.BookMeta;
-import org.yaml.snakeyaml.Yaml;
 
 public class PlayerInteractListener implements Listener {
     

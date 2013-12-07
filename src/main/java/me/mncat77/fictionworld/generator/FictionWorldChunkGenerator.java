@@ -1,10 +1,19 @@
 package me.mncat77.fictionworld.generator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import me.mncat77.fictionworld.generator.biome.BiomeBase;
 import me.mncat77.fictionworld.generator.biome.layer.BiomeLayer;
+import me.mncat77.fictionworld.generator.blockpopulator.FirePopulator;
+import me.mncat77.fictionworld.generator.blockpopulator.GrassPopulator;
+import me.mncat77.fictionworld.generator.blockpopulator.SnowPopulator;
+import me.mncat77.fictionworld.generator.blockpopulator.TreePopulator;
 import me.mncat77.fictionworld.world.FictionWorldAttributes;
+import me.mncat77.fictionworld.world.FictionWorldHostility;
 import org.bukkit.World;
+import org.bukkit.block.Biome;
+import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.util.noise.SimplexOctaveGenerator;
 
@@ -12,9 +21,14 @@ public class FictionWorldChunkGenerator extends ChunkGenerator {
     
     private final double[] distanceFactorGrid = new double[289];
     
+    private final List<BlockPopulator> populators = new ArrayList<BlockPopulator>();
+    
     private final long seed;
     
     private final BiomeLayer layer;
+    
+    private final boolean apocalypse;
+    private byte apoValue;
     
     private final SimplexOctaveGenerator noise;
     private final double noiseAmplitude;
@@ -49,7 +63,33 @@ public class FictionWorldChunkGenerator extends ChunkGenerator {
         
         this.layer = BiomeLayer.getLayer(attributes.getAverageRainfall(), attributes.getAverageTemperature(), attributes.getHostility(), this.seed);
         
-        this.waterLevel = attributes.getWaterLevel();
+        this.apocalypse = attributes.getHostility() == FictionWorldHostility.APOCALYPSE;
+        
+        if(this.apocalypse) {
+            double rainfall = attributes.getAverageRainfall();
+            double temperature = attributes.getAverageTemperature();
+            if(rainfall > .8) {
+                this.waterLevel = 102;
+                if(temperature < .2) {
+                    apoValue = 3;
+                } else {
+                    apoValue = 0;
+                }
+            } else if(temperature > .8) {
+                this.waterLevel = 36;
+                this.populators.add(new FirePopulator());
+                apoValue = 6;
+            } else {
+                this.waterLevel = 36;
+                this.populators.add(new FirePopulator());
+                apoValue = 9;
+            }
+            
+        } else {
+            this.waterLevel = attributes.getWaterLevel();
+            this.populators.add(new TreePopulator());
+            this.populators.add(new GrassPopulator());
+            this.populators.add(new SnowPopulator());}
     }
     
     //This method is partially based on NMS code
@@ -68,8 +108,13 @@ public class FictionWorldChunkGenerator extends ChunkGenerator {
                 double height = 0;
                 for (int neighbourOffsetX = 0; neighbourOffsetX < 17; neighbourOffsetX++) {
                     for (int neighbourOffsetZ = 0; neighbourOffsetZ < 17; neighbourOffsetZ++) {
-                        height += distanceFactorGrid[neighbourOffsetX * 17 + neighbourOffsetZ] *
-                                (waterLevel + BiomeBase.byId[biomes[(z + neighbourOffsetZ) * 34 + x + neighbourOffsetX]].baseHeight);
+                        if(this.apocalypse) {
+                            height += distanceFactorGrid[neighbourOffsetX * 17 + neighbourOffsetZ] *
+                                    (biomes[(z + neighbourOffsetZ) * 34 + x + neighbourOffsetX]*6 + 28);
+                        } else {
+                            height += distanceFactorGrid[neighbourOffsetX * 17 + neighbourOffsetZ] *
+                                    (waterLevel + BiomeBase.byId[biomes[(z + neighbourOffsetZ) * 34 + x + neighbourOffsetX]].baseHeight);
+                        }
                     }
                 }
                 
@@ -105,35 +150,65 @@ public class FictionWorldChunkGenerator extends ChunkGenerator {
         for (int x = 0; x < 16; x++) {
             int xIndex = x * 17;
             for (int z = 0; z < 16; z++) {
-                BiomeBase biomeBase = BiomeBase.byId[values[z * 16 + x]];
-                byte top = biomeBase.topBlockId;
-                byte filler = biomeBase.fillerBlockId;
-                biome.setBiome(x, z, biomeBase.getBukkitBiome());
-                int m = altitudes[xIndex + z];
-                int y = 0;
-                for (; y < rand.nextInt(4) + 2; y++) {
-                    setBlock(x, y, z, chunk, (byte)7);
-                }
-                for (; y < m - rand.nextInt(4) - 2; y++) {
-                    setBlock(x, y, z, chunk, (byte)1);
-                }
-                for (; y < m; y++) {
-                    setBlock(x, y, z, chunk, filler);
-                }
-                if (m > waterLevel) {
-                    setBlock(x, m, z, chunk, top);
-                } else {
-                    setBlock(x, m, z, chunk, filler);
-                    for(y = m + 1; y < waterLevel; y++) {
-                        setBlock(x, y, z, chunk,  (byte)8);
+                if(apocalypse) {
+                    byte top = apoValue > 5 ? (byte)87 : 3;
+                    byte filler = apoValue == 6 ? 88 : top;
+                    biome.setBiome(x, z, apoValue > 5 ? Biome.HELL : Biome.OCEAN);
+                    int m = altitudes[xIndex + z];
+                    int y = 0;
+                    for (; y < rand.nextInt(4) + 2; y++) {
+                        setBlock(x, y, z, chunk, (byte)7);
                     }
-                    setBlock(x, waterLevel, z, chunk,  biomeBase.temperature <= .3 ? (byte)79 : (byte)8);
+                    for (; y < m - rand.nextInt(4) - 2; y++) {
+                        setBlock(x, y, z, chunk, (byte)apoValue > 5 ? (byte)49 : 1);
+                    }
+                    for (; y < m; y++) {
+                        setBlock(x, y, z, chunk, filler);
+                    }
+                    if (m > waterLevel) {
+                        setBlock(x, m, z, chunk, top);
+                    } else {
+                        setBlock(x, m, z, chunk, filler);
+                        for(y = m + 1; y < waterLevel; y++) {
+                            setBlock(x, y, z, chunk,  apoValue < 6? (byte)8 : 11);
+                        }
+                        setBlock(x, waterLevel, z, chunk,  apoValue < 6? (apoValue == 3 ? (byte)79 : (byte)8) : 11);
+                    }
+                } else {
+                    BiomeBase biomeBase = BiomeBase.byId[values[z * 16 + x]];
+                    byte top = biomeBase.topBlockId;
+                    byte filler = biomeBase.fillerBlockId;
+                    biome.setBiome(x, z, biomeBase.getBukkitBiome());
+                    int m = altitudes[xIndex + z];
+                    int y = 0;
+                    for (; y < rand.nextInt(4) + 2; y++) {
+                        setBlock(x, y, z, chunk, (byte)7);
+                    }
+                    for (; y < m - rand.nextInt(4) - 2; y++) {
+                        setBlock(x, y, z, chunk, (byte)1);
+                    }
+                    for (; y < m; y++) {
+                        setBlock(x, y, z, chunk, filler);
+                    }
+                    if (m > waterLevel) {
+                        setBlock(x, m, z, chunk, top);
+                    } else {
+                        setBlock(x, m, z, chunk, filler);
+                        for(y = m + 1; y < waterLevel; y++) {
+                            setBlock(x, y, z, chunk,  (byte)8);
+                        }
+                        setBlock(x, waterLevel, z, chunk,  biomeBase.temperature <= .3 ? (byte)79 : (byte)8);
+                    }
                 }
-                
             }
         }
         
         return chunk;
+    }
+    
+    @Override
+    public List<BlockPopulator> getDefaultPopulators(World world) {
+        return populators;
     }
     
     //These are common methods, I did not create them

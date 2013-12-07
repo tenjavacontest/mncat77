@@ -8,7 +8,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FictionWorld extends JavaPlugin {
-
+    
     @Override
     public void onEnable() {
         PluginManager pM = getServer().getPluginManager();

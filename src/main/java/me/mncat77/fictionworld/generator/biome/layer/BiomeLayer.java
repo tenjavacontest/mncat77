@@ -7,7 +7,7 @@ public abstract class BiomeLayer {
     
     public static BiomeLayer getLayer(double averageRainfall, double averageTemperature, FictionWorldHostility hostility, long seed) {
         BiomeLayer layer;
-        //if (hostility != FictionWorldHostility.APOCALYPSE) {
+        if (hostility != FictionWorldHostility.APOCALYPSE) {
             layer = new BiomeLayerRNGBase(seed);
             layer = new BiomeLayerZoomFuzzy(seed, layer);
             layer = new BiomeLayerAddBlocksToIslands(seed, layer);
@@ -25,7 +25,7 @@ public abstract class BiomeLayer {
             layer2 = new BiomeLayerRiver(seed, layer2);
             layer2 = new BiomeLayerSmooth(seed, layer2);
             
-            layer = new BiomeLayerBiome(seed, layer);
+            layer = new BiomeLayerBiome(seed, layer, averageRainfall, averageTemperature);
             layer = BiomeLayerZoom.magnify(seed, layer, 2);
             layer = new BiomeLayerRegionHills(seed, layer);
             for (int size = 0; size < 4; ++size) {
@@ -33,22 +33,26 @@ public abstract class BiomeLayer {
                 if (size == 0) {
                     layer = new BiomeLayerAddBlocksToIslands(seed + 4, layer);
                 } else if (size == 1) {
-                    layer = new BiomeLayerSwampRivers(1000L, layer);
+                    layer = new BiomeLayerLakes(1000L, layer);
                 }
             }
             layer = new BiomeLayerSmooth(seed, layer);
             layer = new BiomeLayerRiverMix(seed, layer, layer2);
+            layer = new BiomeLayerZoomVoronoi(seed, layer);
             
-        /*} else {
-            layer = new BiomeLayerApocalypse(averageRainfall, averageTemperature);
-        }*/
+        } else {
+            layer = new BiomeLayerApocalypse(seed, averageRainfall, averageTemperature);
+            layer = new BiomeLayerZoomFuzzy(seed, layer);
+            layer = BiomeLayerZoom.magnify(seed, layer, 5);
+            layer = new BiomeLayerZoomVoronoi(seed, layer);
+        }
         return layer;
     }
     
     protected long seed;
     protected BiomeLayer parent;
     
-    private long chunkSeed;
+    protected long chunkSeed;
     
     
     public BiomeLayer(long seed) {

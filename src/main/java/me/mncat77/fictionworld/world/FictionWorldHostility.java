@@ -5,7 +5,8 @@ public enum FictionWorldHostility {
     IDYLL(0),
     PEACEFUL(1),
     HOSTILE(2),
-    APOCALYPSE(3);
+    APOCALYPSE(3),
+    VANILLA(4);
     
     public final int hostility;
     
