@@ -22,7 +22,7 @@ public class FirePopulator extends BlockPopulator {
                 Random rand = getLocationRandom(world.getSeed(), centerX + x, centerZ + z);
                 if(rand.nextInt(100) < 3)  {
                     Block start = new Location(world, rX, world.getHighestBlockYAt(rX, rZ), rZ).getBlock();
-                    if(!start.getRelative(BlockFace.DOWN).getType().isSolid()) {
+                    if(!start.getRelative(BlockFace.DOWN).isLiquid()) {
                         return;
                     }
                     start.setType(Material.FIRE);
