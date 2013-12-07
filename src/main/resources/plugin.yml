@@ -1,7 +1,7 @@
 author: mncat77
 database: false
 generator: http://dinnerbone.com/minecraft/tools/pluginator/
-main: me.mncat77.tenjavacontestplugin.TenJavaContestPlugin
-name: TenJavaContestPlugin
-startup: postworld
+main: me.mncat77.fictionworld.FictionWorld
+name: FictionWorld
+startup: startup
 version: '1.0'
